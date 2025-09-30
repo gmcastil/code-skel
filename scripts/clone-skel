@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+
+import sys
+import shutil
+from pathlib import Path
+
+
+def main():
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} <language> <destination>")
+        sys.exit(1)
+
+    lang = sys.argv[1]
+    dest = Path(sys.argv[2]).expanduser().resolve()
+
+    root = Path(__file__).resolve().parent
+    src = root.parent / lang
+
+    if not src.is_dir():
+        print(f"Error: No skeleton for '{lang}' in {root}")
+        sys.exit(1)
+
+    if dest.is_dir():
+        print(f"Error: Directory already exists at {dest}")
+        sys.exit(1)
+
+    # Copy the skeleton to the destination, but don't overwrite anything that
+    # already exists there
+    try:
+        shutil.copytree(src, dest)
+    except Exception as e:
+        print(f"Error: Failed to clone skeleton {e}")
+
+    # Get rid of the README from the original skeleton, if it exists
+    (dest / "README.md").unlink(missing_ok=True)
+
+    print(f"Cloned {lang} skeleton into {dest}")
+
+
+if __name__ == "__main__":
+    main()
