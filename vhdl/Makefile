@@ -3,6 +3,8 @@ include tools.conf
 
 SHELL			:= /bin/bash
 PRINTF			:= /usr/bin/printf
+MKDIR			:= /bin/mkdir
+CTAGS			:= /bin/ctags
 
 # Tools
 VCOM			:= vcom
@@ -10,6 +12,7 @@ VLOG			:= vlog
 VLIB			:= vlib
 VDIR			:= vdir
 VMAP			:= vmap
+VDEL			:= vdel
 
 # Specify the path to the modelsim.ini file - this forces us to use the local
 # version which references the Xilinx simulation library path
@@ -27,8 +30,9 @@ endif
 # Directories to exclude when creating a tags file. This prevents creating tags
 # that reference Xilinx IP or project files 
 CTAGS_EXCLUDE_DIRS	=
-CTAGS_EXCLUDE_DIRS	+= $(PWD)/.git $(PWD)/doc
-CTAGS_FLAGS		+= $(foreach dir,$(CTAGS_EXCLUDE_DIRS), --exclude=$(dir))
+CTAGS_EXCLUDE_DIRS	+= $(PWD)/.git $(PWD)/doc $(RUN_DIR)
+CTAGS_FLAGS		= $(foreach dir,$(CTAGS_EXCLUDE_DIRS), --exclude=$(dir))
+CTAGS_FLAGS		+= -R
 
 # Tool settings
 VCOM_FLAGS		:= -2002 -lint
@@ -44,25 +48,24 @@ RTL_FILES		:= $(wildcard $(RTL_DIR)/*.vhd)
 WORK			:= work
 
 $(RUN_DIR)/$(WORK)/_info: $(RTL_DIR)/filelist.f $(RTL_FILES)
-	$(PRINTF) "Would run\n"
+	$(MKDIR) -pv $(RUN_DIR)
+	if [[ -d $(RUN_DIR)/$(WORK) ]]; then \
+		$(VDEL) -lib $(RUN_DIR)/$(WORK) -all; \
+	fi
+	$(VLIB) $(RUN_DIR)/$(WORK)
+	$(VMAP) $(WORK) $(RUN_DIR)/$(WORK)
+	$(VCOM) $(VCOM_FLAGS) -work $(WORK) -F $(RTL_DIR)/filelist.f
 
-# Compile the Altera DUT from the list of RTL files
-# $(RUN_DIR)/$(ALTERA_WORK): $(DUT_RTL_DIR)/decoder_altera.f $(ALTERA_FILES) 
-# 	$(MKDIR) -pv $(RUN_DIR)
-# 	# Always remove the database if it already exists
-# 	if [[ -d $(RUN_DIR)/$(ALTERA_WORK) ]]; then \
-# 		$(VDEL) -lib $(RUN_DIR)/$(ALTERA_WORK) -all; \
-# 	fi
-# 	$(VLIB) $(RUN_DIR)/$(ALTERA_WORK)
-# 	$(VMAP) $(NDI_WORK) $(RUN_DIR)/$(ALTERA_WORK)
-# 	$(VCOM) $(VCOM_FLAGS) -work $(NDI_WORK) -F $(DUT_RTL_DIR)/decoder_altera.f
+.PHONY: smoke ctags clean
 
-.PHONY: smoke
 smoke:
-	@echo MODELSIM = $(MODELSIM)
-	@echo XILINX_SIMLIB_DIR = $(XILINX_SIMLIB_DIR)
-	@echo ALTERA_SIMLIB_DIR = $(ALTERA_SIMLIB_DIR)
+	@$(PRINTF) "%s\n" "MODELSIM = $(MODELSIM)"
+	@$(PRINTF) "%s\n" "XILINX_SIMLIB_DIR = $(XILINX_SIMLIB_DIR)"
+	@$(PRINTF) "%s\n" "ALTERA_SIMLIB_DIR = $(ALTERA_SIMLIB_DIR)"
 	$(VDIR) -all
-clean:
-	$(RM) -rf $(RUN_DIR)
 
+ctags:
+	$(CTAGS) $(CTAGS_FLAGS) .
+clean:
+	$(RM) -rf -- $(RUN_DIR)
+	$(RM) -f -- $(PWD)/tags
