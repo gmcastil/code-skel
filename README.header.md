@@ -1,7 +1,8 @@
 # code-skel
 
-This repository is a collection of small language-specific skeleton projects, with a heavy emphasis on HDL designs.  
-Each directory provides just enough structure (Makefiles, configs, placeholders) to let you:
+This repository is a collection of small language-specific skeleton projects,
+with a heavy emphasis on HDL designs. Each directory provides just enough
+structure (Makefiles, configs, placeholders) to let you:
 
 - Open in an editor with language-server support already working
 - Run a build or simulation with minimal setup
@@ -24,10 +25,8 @@ your tool locations and layout vary from that, and it is quite likely they
 will, edit the `tools.conf` as needed. In general, ECAD tools are very
 sensitive to their enviroments, so some modification may be needed.
 
----
-
 Each language directory includes its own `README.md` (starting with a section
 header such as `## VHDL`) that documents setup and usage. The top-level README
-can be rebuilt by concatenating those sub-readmes under this introduction.
+can be rebuilt by running `make readme`
 
 # Languages
